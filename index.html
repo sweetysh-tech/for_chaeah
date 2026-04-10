@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6C63FF">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="아이 시간표">
+<title>아이 시간표</title>
+<link rel="manifest" href="manifest.json">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --school: #1DB87A;
+  --school-light: #E3F9EE;
+  --school-dark: #0a7a50;
+  --academy: #6C63FF;
+  --academy-light: #EEEEFF;
+  --academy-dark: #4a42cc;
+  --bg: #F5F4FF;
+  --card: #FFFFFF;
+  --text: #1a1a2e;
+  --text2: #6b6b8a;
+  --text3: #a0a0bc;
+  --border: rgba(108,99,255,0.12);
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 90px;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* Header */
+.header {
+  background: var(--academy);
+  padding: 52px 20px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 160px; height: 160px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; left: 40px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 50%;
+}
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
+}
+.header-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.header-sub {
+  color: rgba(255,255,255,0.7);
+  font-size: 13px;
+  margin-top: 2px;
+}
+.header-today-count {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 20px;
+}
+
+/* Day tabs */
+.day-scroll {
+  padding: 16px 20px 0;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+.day-scroll::-webkit-scrollbar { display: none; }
+.day-tab {
+  flex-shrink: 0;
+  padding: 8px 16px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  color: var(--text3);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all .2s;
+}
+.day-tab.active {
+  color: var(--academy);
+  border-bottom-color: var(--academy);
+}
+.day-tab.today-tab { color: var(--school); }
+.day-tab.today-tab.active { color: var(--school); border-bottom-color: var(--school); }
+
+/* Content */
+.content { padding: 20px; }
+
+.date-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  margin-bottom: 12px;
+}
+
+.schedule-list { display: flex; flex-direction: column; gap: 10px; }
+
+.item-card {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.07);
+  cursor: pointer;
+  transition: transform .15s, box-shadow .15s;
+  position: relative;
+}
+.item-card:active { transform: scale(0.98); }
+.item-left {
+  width: 5px;
+  align-self: stretch;
+  flex-shrink: 0;
+}
+.item-body {
+  flex: 1;
+  padding: 14px 12px;
+}
+.item-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.item-time {
+  font-size: 12px;
+  color: var(--text2);
+  margin-top: 3px;
+  font-weight: 500;
+}
+.item-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-right: 14px;
+}
+.badge-school { background: var(--school-light); color: var(--school-dark); }
+.badge-academy { background: var(--academy-light); color: var(--academy-dark); }
+.bar-school { background: var(--school); }
+.bar-academy { background: var(--academy); }
+
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+}
+.empty-icon {
+  width: 64px; height: 64px;
+  background: var(--academy-light);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 28px;
+}
+.empty-text {
+  font-size: 14px;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+/* FAB */
+.fab {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 56px; height: 56px;
+  background: var(--academy);
+  border-radius: 50%;
+  border: none;
+  color: #fff;
+  font-size: 26px;
+  font-weight: 300;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .15s, box-shadow .15s;
+  z-index: 100;
+}
+.fab:active { transform: scale(0.93); box-shadow: 0 2px 10px rgba(108,99,255,0.3); }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 20px;
+  z-index: 99;
+}
+.nav-btn {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px;
+  background: transparent; border: none; cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  padding: 6px 0;
+}
+.nav-icon {
+  width: 24px; height: 24px;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+}
+.nav-btn.active .nav-label { color: var(--academy); }
+.nav-btn.active .nav-dot { background: var(--academy); }
+.nav-dot {
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: transparent;
+  margin-top: 1px;
+}
+
+/* Pages */
+.page { display: none; }
+.page.active { display: block; }
+
+/* Week view */
+.week-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.week-row {
+  background: var(--card);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.06);
+}
+.week-day-header {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.week-day-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text);
+  width: 28px;
+}
+.week-day-name.today { color: var(--school); }
+.week-items-wrap { padding: 8px 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.week-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+.pill-school { background: var(--school-light); color: var(--school-dark); }
+.pill-academy { background: var(--academy-light); color: var(--academy-dark); }
+.week-empty { font-size: 12px; color: var(--text3); padding: 8px 14px 10px; font-weight: 600; }
+
+/* Stats page */
+.stats-header {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(108,99,255,0.07);
+}
+.stats-total {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--academy);
+}
+.stats-label { font-size: 13px; color: var(--text2); font-weight: 600; margin-top: 2px; }
+.stat-bars { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+.stat-bar-row { display: flex; flex-direction: column; gap: 5px; }
+.stat-bar-top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+.stat-bar-bg { height: 8px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+.stat-bar-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+
+.legend-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+}
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+/* Modal */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(26,26,46,0.5);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  max-width: 430px;
+  animation: slideUp .25s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  margin: 0 auto 20px;
+}
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+.type-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.type-btn {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.type-btn.sel-school { background: var(--school-light); color: var(--school-dark); border-color: var(--school); }
+.type-btn.sel-academy { background: var(--academy-light); color: var(--academy-dark); border-color: var(--academy); }
+
+.form-label { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 6px; display: block; letter-spacing: .04em; }
+.form-group { margin-bottom: 14px; }
+.form-input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  font-size: 15px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--bg);
+  outline: none;
+  transition: border-color .15s;
+}
+.form-input:focus { border-color: var(--academy); }
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b6b8a' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+.time-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+.btn-cancel {
+  flex: 1;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  color: var(--text2);
+  cursor: pointer;
+}
+.btn-save {
+  flex: 2;
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--academy);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(108,99,255,0.35);
+}
+.btn-delete {
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid #fdd;
+  background: transparent;
+  color: #e04444;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-title">아이 시간표</div>
+      <div class="header-sub" id="headerSub">오늘의 일정을 확인하세요</div>
+    </div>
+    <div class="header-today-count" id="todayCount">오늘 0개</div>
+  </div>
+</div>
+
+<!-- Day tabs (only for schedule page) -->
+<div class="day-scroll" id="dayScroll">
+  <button class="day-tab" data-day="0">월</button>
+  <button class="day-tab" data-day="1">화</button>
+  <button class="day-tab" data-day="2">수</button>
+  <button class="day-tab" data-day="3">목</button>
+  <button class="day-tab" data-day="4">금</button>
+  <button class="day-tab" data-day="5">토</button>
+  <button class="day-tab" data-day="6">일</button>
+</div>
+
+<!-- Pages -->
+<div class="content">
+  <!-- Schedule Page -->
+  <div class="page active" id="page-schedule">
+    <div class="date-label" id="dateLabel"></div>
+    <div class="schedule-list" id="scheduleList"></div>
+  </div>
+
+  <!-- Week Page -->
+  <div class="page" id="page-week">
+    <div class="date-label" style="margin-bottom:12px">주간 시간표</div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+
+  <!-- Stats Page -->
+  <div class="page" id="page-stats">
+    <div class="date-label" style="margin-bottom:12px">통계</div>
+    <div class="stats-header" id="statsCard"></div>
+    <div class="week-grid" id="statsDetail"></div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn">+</button>
+
+<!-- Bottom Nav -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-page="schedule" onclick="goPage('schedule',this)">
+    <div class="nav-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--academy)">
+        <rect x="3" y="4" width="18" height="18" rx="3"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <span class="nav-label" style="color:var(--academy)">오늘</span>
+    <div class="nav-dot" style="background:var(--academy)"></div>
+  </button>
+  <button class="nav-btn" data-page="week" onclick="goPage('week',this)">
+    <div class="nav-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3)">
+        <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+      </svg>
+    </div>
+    <span class="nav-label">주간</span>
+    <div class="nav-dot"></div>
+  </button>
+  <button class="nav-btn" data-page="stats" onclick="goPage('stats',this)">
+    <div class="nav-icon">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text3)">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+    </div>
+    <span class="nav-label">통계</span>
+    <div class="nav-dot"></div>
+  </button>
+</nav>
+
+<!-- Add/Edit Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">일정 추가</div>
+    <div class="type-toggle">
+      <button class="type-btn sel-school" id="typeSchoolBtn" onclick="setType('school')">학교 수업</button>
+      <button class="type-btn" id="typeAcademyBtn" onclick="setType('academy')">학원</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">일정 이름</label>
+      <input class="form-input" type="text" id="fName" placeholder="예) 수학, 영어학원">
+    </div>
+    <div class="form-group">
+      <label class="form-label">요일</label>
+      <select class="form-input form-select" id="fDay">
+        <option value="0">월요일</option>
+        <option value="1">화요일</option>
+        <option value="2">수요일</option>
+        <option value="3">목요일</option>
+        <option value="4">금요일</option>
+        <option value="5">토요일</option>
+        <option value="6">일요일</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">시간</label>
+      <div class="time-row">
+        <input class="form-input" type="time" id="fStart" value="09:00">
+        <input class="form-input" type="time" id="fEnd" value="10:00">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-delete" id="delBtn" style="display:none" onclick="deleteItem()">삭제</button>
+      <button class="btn-save" onclick="saveItem()">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['월','화','수','목','금','토','일'];
+const DAYS_FULL = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+
+let schedules = JSON.parse(localStorage.getItem('kidSched2') || '{}');
+let selDay = 0;
+let curPage = 'schedule';
+let editId = null;
+let curType = 'school';
+
+function save() { localStorage.setItem('kidSched2', JSON.stringify(schedules)); }
+function getId() { return Date.now() + Math.random().toString(36).slice(2,6); }
+
+function fmt(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':');
+  const hr = +h;
+  return `${hr < 12 ? '오전' : '오후'} ${hr % 12 || 12}:${m}`;
+}
+
+function getTodayIdx() {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
+
+function initDayTabs() {
+  const todayIdx = getTodayIdx();
+  selDay = todayIdx;
+  document.querySelectorAll('.day-tab').forEach(b => {
+    const i = +b.dataset.day;
+    b.classList.toggle('active', i === selDay);
+    if (i === todayIdx) b.classList.add('today-tab');
+    b.onclick = () => selectDay(i);
+  });
+}
+
+function selectDay(i) {
+  selDay = i;
+  document.querySelectorAll('.day-tab').forEach(b => b.classList.toggle('active', +b.dataset.day === i));
+  renderSchedule();
+}
+
+function renderSchedule() {
+  const todayIdx = getTodayIdx();
+  const items = (schedules[selDay] || []).slice().sort((a,b) => a.start.localeCompare(b.start));
+  const dateLabel = document.getElementById('dateLabel');
+  dateLabel.textContent = DAYS_FULL[selDay] + (selDay === todayIdx ? ' · 오늘' : '');
+
+  const list = document.getElementById('scheduleList');
+  if (!items.length) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">이 날엔 일정이 없어요</div></div>`;
+    return;
+  }
+  list.innerHTML = items.map(item => `
+    <div class="item-card" onclick="openEdit('${item.id}')">
+      <div class="item-left ${item.type === 'school' ? 'bar-school' : 'bar-academy'}"></div>
+      <div class="item-body">
+        <div class="item-name">${item.name}</div>
+        <div class="item-time">${fmt(item.start)} ~ ${fmt(item.end)}</div>
+      </div>
+      <span class="item-badge ${item.type === 'school' ? 'badge-school' : 'badge-academy'}">${item.type === 'school' ? '학교' : '학원'}</span>
+    </div>
+  `).join('');
+
+  updateHeader();
+}
+
+function updateHeader() {
+  const todayIdx = getTodayIdx();
+  const todayItems = schedules[todayIdx] || [];
+  document.getElementById('todayCount').textContent = `오늘 ${todayItems.length}개`;
+  const now = new Date();
+  document.getElementById('headerSub').textContent =
+    `${now.getMonth()+1}월 ${now.getDate()}일 ${DAYS[todayIdx]}요일`;
+}
+
+function renderWeek() {
+  const todayIdx = getTodayIdx();
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = DAYS.map((d,i) => {
+    const items = (schedules[i] || []).slice().sort((a,b) => a.start.localeCompare(b.start));
+    const pills = items.length
+      ? items.map(it => `<span class="week-pill ${it.type==='school'?'pill-school':'pill-academy'}">${it.name}</span>`).join('')
+      : `<div class="week-empty">일정 없음</div>`;
+    return `<div class="week-row">
+      <div class="week-day-header">
+        <span class="week-day-name ${i===todayIdx?'today':''}">${d}</span>
+        <span style="font-size:11px;color:var(--text3);font-weight:600;margin-left:4px">${i===todayIdx?'오늘':''}</span>
+      </div>
+      <div class="week-items-wrap">${pills}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderStats() {
+  let school = 0, academy = 0;
+  Object.values(schedules).forEach(arr => arr.forEach(i => { if (i.type==='school') school++; else academy++; }));
+  const total = school + academy;
+  const sp = total ? Math.round(school/total*100) : 0;
+  const ap = total ? Math.round(academy/total*100) : 0;
+
+  document.getElementById('statsCard').innerHTML = `
+    <div class="stats-total">${total}</div>
+    <div class="stats-label">전체 등록 일정</div>
+    <div class="stat-bars">
+      <div class="stat-bar-row">
+        <div class="stat-bar-top">
+          <span style="color:var(--school-dark)">학교 수업</span>
+          <span style="color:var(--school-dark)">${school}개</span>
+        </div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${sp}%;background:var(--school)"></div></div>
+      </div>
+      <div class="stat-bar-row">
+        <div class="stat-bar-top">
+          <span style="color:var(--academy-dark)">학원</span>
+          <span style="color:var(--academy-dark)">${academy}개</span>
+        </div>
+        <div class="stat-bar-bg"><div class="stat-bar-fill" style="width:${ap}%;background:var(--academy)"></div></div>
+      </div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--school)"></div>학교</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--academy)"></div>학원</div>
+    </div>`;
+
+  const detail = document.getElementById('statsDetail');
+  detail.innerHTML = DAYS.map((d,i) => {
+    const items = schedules[i] || [];
+    const s = items.filter(x => x.type==='school').length;
+    const a = items.filter(x => x.type==='academy').length;
+    if (!items.length) return '';
+    return `<div class="week-row">
+      <div class="week-day-header"><span class="week-day-name">${d}요일</span>
+        <span style="font-size:11px;color:var(--text3);font-weight:600;margin-left:6px">학교 ${s} · 학원 ${a}</span>
+      </div>
+      <div class="week-items-wrap">${items.map(it=>`<span class="week-pill ${it.type==='school'?'pill-school':'pill-academy'}">${it.name} <span style="opacity:.6">${fmt(it.start)}</span></span>`).join('')}</div>
+    </div>`;
+  }).filter(Boolean).join('') || '<div style="color:var(--text3);font-size:13px;font-weight:600;text-align:center;padding:32px 0">등록된 일정이 없어요</div>';
+}
+
+function goPage(name, btn) {
+  curPage = name;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.remove('active');
+    b.querySelector('.nav-label').style.color = '';
+    b.querySelector('.nav-dot').style.background = '';
+  });
+  btn.classList.add('active');
+  btn.querySelector('.nav-label').style.color = 'var(--academy)';
+  btn.querySelector('.nav-dot').style.background = 'var(--academy)';
+
+  document.getElementById('dayScroll').style.display = name === 'schedule' ? 'flex' : 'none';
+  document.getElementById('fabBtn').style.display = name === 'stats' ? 'none' : 'flex';
+
+  if (name === 'week') renderWeek();
+  if (name === 'stats') renderStats();
+}
+
+function setType(t) {
+  curType = t;
+  document.getElementById('typeSchoolBtn').className = 'type-btn' + (t==='school'?' sel-school':'');
+  document.getElementById('typeAcademyBtn').className = 'type-btn' + (t==='academy'?' sel-academy':'');
+}
+
+function openAdd() {
+  editId = null; curType = 'school'; setType('school');
+  document.getElementById('modalTitle').textContent = '일정 추가';
+  document.getElementById('fName').value = '';
+  document.getElementById('fDay').value = selDay;
+  document.getElementById('fStart').value = '09:00';
+  document.getElementById('fEnd').value = '10:00';
+  document.getElementById('delBtn').style.display = 'none';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function openEdit(id) {
+  let found = null;
+  Object.values(schedules).forEach(arr => arr.forEach(i => { if (i.id===id) found=i; }));
+  if (!found) return;
+  editId = id; curType = found.type; setType(found.type);
+  document.getElementById('modalTitle').textContent = '일정 수정';
+  document.getElementById('fName').value = found.name;
+  document.getElementById('fDay').value = found.day;
+  document.getElementById('fStart').value = found.start;
+  document.getElementById('fEnd').value = found.end;
+  document.getElementById('delBtn').style.display = '';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+
+function saveItem() {
+  const name = document.getElementById('fName').value.trim();
+  const day = +document.getElementById('fDay').value;
+  const start = document.getElementById('fStart').value;
+  const end = document.getElementById('fEnd').value;
+  if (!name) { document.getElementById('fName').focus(); return; }
+  if (!schedules[day]) schedules[day] = [];
+  if (editId) {
+    Object.keys(schedules).forEach(d => { schedules[d] = schedules[d].filter(i => i.id !== editId); });
+    schedules[day].push({ id: editId, name, day, start, end, type: curType });
+  } else {
+    schedules[day].push({ id: getId(), name, day, start, end, type: curType });
+  }
+  save(); closeModal();
+  renderSchedule();
+  if (curPage === 'week') renderWeek();
+  if (curPage === 'stats') renderStats();
+  updateHeader();
+}
+
+function deleteItem() {
+  if (!editId) return;
+  Object.keys(schedules).forEach(d => { schedules[d] = schedules[d].filter(i => i.id !== editId); });
+  save(); closeModal(); renderSchedule(); updateHeader();
+}
+
+document.getElementById('fabBtn').onclick = openAdd;
+document.getElementById('overlay').onclick = e => { if (e.target === e.currentTarget) closeModal(); };
+
+initDayTabs();
+renderSchedule();
+updateHeader();
+</script>
+</body>
+</html>
