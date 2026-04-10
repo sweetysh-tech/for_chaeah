@@ -4,8 +4,8 @@
   "description": "채아의 학교·학원 주간 시간표",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#F7F6FF",
-  "theme_color": "#6C63FF",
+  "background_color": "#FFF0F5",
+  "theme_color": "#FF6B9D",
   "orientation": "portrait",
   "lang": "ko",
   "icons": [
